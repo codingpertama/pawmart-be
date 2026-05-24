@@ -15,8 +15,9 @@ return [
     |
     */
 
+    // guard awal nya web jadi api
     'defaults' => [
-        'guard' => env('AUTH_GUARD', 'web'),
+        'guard' => env('AUTH_GUARD', 'api'),
         'passwords' => env('AUTH_PASSWORD_BROKER', 'users'),
     ],
 
