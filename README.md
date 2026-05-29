@@ -1,58 +1,333 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🐾 PawMart — Backend API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+> REST API untuk aplikasi **PawMart**, web petshop online sederhana.  
+> Dibuat sebagai proyek uji kelayakan persiapan PKL — SMK Wikrama Bogor, Jurusan PPLG XI 2026.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 📋 Daftar Isi
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- [Tentang Proyek](#tentang-proyek)
+- [Tech Stack](#tech-stack)
+- [Struktur Database](#struktur-database)
+- [Instalasi & Setup](#instalasi--setup)
+- [Konfigurasi Environment](#konfigurasi-environment)
+- [Menjalankan Aplikasi](#menjalankan-aplikasi)
+- [Dokumentasi API](#dokumentasi-api)
+- [Status Fitur](#status-fitur)
+- [Catatan Penting](#catatan-penting)
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## 📖 Tentang Proyek
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+**PawMart** adalah aplikasi e-commerce berbasis web yang fokus pada penjualan produk hewan peliharaan (petshop). Repositori ini berisi **backend** yang dibangun dengan Laravel 13 sebagai pure REST API.
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Proyek ini dipisah menjadi dua folder:
+- `pawmart-be` → Backend (repositori ini)
+- `pawmart-web` → Frontend (React + Vite + Tailwind CSS v4)
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+---
 
-## Agentic Development
+## 🛠️ Tech Stack
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+| Komponen | Teknologi |
+|---|---|
+| Framework | Laravel 13 |
+| Bahasa | PHP 8.2+ |
+| Database | MySQL |
+| Autentikasi | JWT (`php-open-source-saver/jwt-auth`) |
+| Tools | Postman, Git, VSCode, Laragon |
 
-```bash
-composer require laravel/boost --dev
+---
 
-php artisan boost:install
+## 🗄️ Struktur Database
+
+### Tabel `users`
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| id | bigint | Primary key |
+| name | varchar | Nama pengguna |
+| email | varchar | Email (unique) |
+| password | varchar | Password ter-hash |
+| role | enum | `admin` atau `user` |
+| phone | varchar | Nomor HP (nullable) |
+| timestamps | - | created_at, updated_at |
+
+### Tabel `categories`
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| id | bigint | Primary key |
+| name | varchar | Nama kategori |
+| timestamps | - | created_at, updated_at |
+
+### Tabel `products`
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| id | bigint | Primary key |
+| category_id | bigint | FK → categories.id |
+| name | varchar | Nama produk |
+| description | text | Deskripsi (nullable) |
+| price | decimal(10,2) | Harga |
+| stock | int | Stok tersedia |
+| image | varchar | Path foto (nullable) |
+| timestamps | - | created_at, updated_at |
+
+### Tabel `carts`
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| id | bigint | Primary key |
+| user_id | bigint | FK → users.id |
+| product_id | bigint | FK → products.id |
+| quantity | int | Jumlah item |
+| timestamps | - | created_at, updated_at |
+
+### Tabel `orders`
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| id | bigint | Primary key |
+| user_id | bigint | FK → users.id |
+| total_price | decimal(10,2) | Total harga pesanan |
+| status | enum | `diproses` (default) atau `selesai` |
+| shipping_address | text | Alamat pengiriman |
+| payment_proof | varchar | Path bukti bayar (nullable) |
+| timestamps | - | created_at, updated_at |
+
+### Tabel `order_items`
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| id | bigint | Primary key |
+| order_id | bigint | FK → orders.id |
+| product_id | bigint | FK → products.id |
+| quantity | int | Jumlah item dipesan |
+| price | decimal(10,2) | Harga saat transaksi (snapshot) |
+| timestamps | - | created_at, updated_at |
+
+### Relasi Antar Tabel
+```
+users       ──< orders       (one to many)
+users       ──< carts        (one to many)
+categories  ──< products     (one to many)
+products    ──< carts        (one to many)
+orders      ──< order_items  (one to many)
+products    ──< order_items  (one to many)
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+---
 
-## Contributing
+## ⚙️ Instalasi & Setup
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Prasyarat
 
-## Code of Conduct
+- PHP 8.2+
+- Composer
+- MySQL
+- Laragon (atau server lokal lainnya)
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### Langkah Instalasi
 
-## Security Vulnerabilities
+```bash
+# 1. Clone repositori
+git clone https://github.com/username/pawmart-be.git
+cd pawmart-be
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+# 2. Install dependencies PHP
+composer install
 
-## License
+# 3. Salin file environment
+cp .env.example .env
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+# 4. Generate application key
+php artisan key:generate
+
+# 5. Generate JWT secret key
+php artisan jwt:secret
+
+# 6. Jalankan migrasi database
+php artisan migrate
+
+# 7. (Opsional) Jalankan seeder untuk data awal
+php artisan db:seed
+```
+
+---
+
+## 🔧 Konfigurasi Environment
+
+Isi file `.env` dengan konfigurasi berikut:
+
+```env
+APP_NAME=PawMart
+APP_ENV=local
+APP_KEY=           # otomatis diisi saat php artisan key:generate
+APP_DEBUG=true
+APP_URL=http://localhost:8000
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=pawmart
+DB_USERNAME=root
+DB_PASSWORD=
+
+JWT_SECRET=        # otomatis diisi saat php artisan jwt:secret
+JWT_TTL=60         # masa berlaku token dalam menit
+```
+
+---
+
+## 🚀 Menjalankan Aplikasi
+
+```bash
+php artisan serve
+```
+
+API akan berjalan di: `http://localhost:8000/api`
+
+---
+
+## 📡 Dokumentasi API
+
+### Format Response
+
+Semua endpoint mengembalikan response dalam format JSON:
+
+```json
+{
+  "success": true,
+  "message": "Keterangan response",
+  "data": { ... }
+}
+```
+
+### 🔐 Autentikasi
+
+| Method | Endpoint | Akses | Keterangan |
+|---|---|---|---|
+| POST | `/api/register` | Public | Daftar akun baru |
+| POST | `/api/login` | Public | Login, mendapat JWT token |
+| POST | `/api/logout` | User login | Logout, token dihapus |
+| GET | `/api/profile` | User login | Lihat profil sendiri |
+
+#### Contoh Request Login
+```json
+POST /api/login
+{
+  "email": "user@example.com",
+  "password": "password123"
+}
+```
+
+#### Contoh Response Login
+```json
+{
+  "success": true,
+  "message": "Login berhasil",
+  "data": {
+    "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+    "user": {
+      "id": 1,
+      "name": "John Doe",
+      "email": "user@example.com",
+      "role": "user"
+    }
+  }
+}
+```
+
+> 🔑 Untuk endpoint yang membutuhkan login, sertakan token di header:
+> `Authorization: Bearer <token>`
+
+---
+
+### 📦 Kategori
+
+| Method | Endpoint | Akses | Keterangan |
+|---|---|---|---|
+| GET | `/api/categories` | Public | Ambil semua kategori |
+| POST | `/api/categories` | Admin | Tambah kategori baru |
+| PUT | `/api/categories/{id}` | Admin | Edit kategori |
+| DELETE | `/api/categories/{id}` | Admin | Hapus kategori |
+
+---
+
+### 🛒 Produk
+
+| Method | Endpoint | Akses | Keterangan |
+|---|---|---|---|
+| GET | `/api/products` | Public | Ambil semua produk |
+| GET | `/api/products/{id}` | Public | Detail produk |
+| POST | `/api/products` | Admin | Tambah produk + upload foto |
+| PUT | `/api/products/{id}` | Admin | Edit produk + upload foto |
+| DELETE | `/api/products/{id}` | Admin | Hapus produk |
+
+---
+
+### 🛍️ Keranjang Belanja
+
+| Method | Endpoint | Akses | Keterangan |
+|---|---|---|---|
+| GET | `/api/carts` | User | Lihat isi keranjang sendiri |
+| POST | `/api/carts` | User | Tambah produk ke keranjang |
+| PUT | `/api/carts/{id}` | User | Update jumlah item |
+| DELETE | `/api/carts/{id}` | User | Hapus item dari keranjang |
+
+---
+
+### 📝 Pesanan
+
+| Method | Endpoint | Akses | Keterangan |
+|---|---|---|---|
+| GET | `/api/orders` | Admin/User | Admin: semua pesanan; User: pesanan sendiri |
+| POST | `/api/orders` | User | Checkout (menggunakan Database Transaction) |
+| GET | `/api/orders/{id}` | Admin/User | Detail pesanan |
+| PUT | `/api/orders/{id}/status` | Admin | Update status pesanan ke `selesai` |
+| POST | `/api/orders/{id}/payment` | User | Upload bukti pembayaran |
+
+---
+
+### 📊 Export
+
+| Method | Endpoint | Akses | Keterangan |
+|---|---|---|---|
+| GET | `/api/export/orders` | Admin | Export data pesanan (PDF/Excel) |
+
+---
+
+## ✅ Status Fitur
+
+| Fitur | Status |
+|---|---|
+| Login JWT | ✅ Selesai |
+| Register & Logout | ✅ Selesai |
+| CRUD Kategori | ✅ Controller selesai |
+| CRUD Produk + Upload Foto | ⬜ Dalam pengerjaan |
+| Keranjang Belanja | ⬜ Dalam pengerjaan |
+| Checkout (Database Transaction) | ⬜ Dalam pengerjaan |
+| Upload Bukti Pembayaran | ⬜ Dalam pengerjaan |
+| Update Status Pesanan | ⬜ Dalam pengerjaan |
+| Export PDF/Excel | ⬜ Belum dimulai |
+| Middleware IsAdmin | ✅ Selesai |
+
+---
+
+## 📌 Catatan Penting
+
+- **Role pengguna:** `admin` dan `user` (bukan `customer`)
+- **Status pesanan:** hanya `diproses` (default saat checkout) dan `selesai` (setelah admin konfirmasi)
+- **Keranjang:** disimpan di database, bukan localStorage
+- **Harga di `order_items`:** menyimpan harga saat transaksi (price snapshot), tidak mengambil ulang dari tabel `products`
+- **Syntax Model:** menggunakan PHP Attribute Laravel 13 (`#[Fillable]`, `#[Hidden]`), tanpa `HasFactory`
+- **Semua kode** dilengkapi komentar untuk keperluan dokumentasi dan belajar
+
+---
+
+## 👨‍💻 Developer
+
+**Rafa** — SMK Wikrama Bogor  
+Jurusan: Pengembangan Perangkat Lunak dan Gim (PPLG) XI  
+Tahun: 2026
+
+---
+
+> Proyek ini dibuat untuk memenuhi syarat **Uji Kelayakan Persiapan PKL** SMK Wikrama Bogor.
