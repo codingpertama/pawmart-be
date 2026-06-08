@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\OrderExport;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -11,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Facades\Excel;
 
 class OrderController extends Controller
 {
@@ -250,6 +252,12 @@ class OrderController extends Controller
             'message' => 'Status pesanan berhasil diperbarui menjadi '.$request->status,
             'data' => $order,
         ]);
+    }
+
+    public function exportExcel()
+    {
+        $filename = 'data-order.xlsx';
+        return Excel::download(new OrderExport, $filename);
     }
 
     /**

@@ -30,6 +30,8 @@ class ProductController extends Controller
         $products = $query->latest()->get();
 
         // Tambahkan URL lengkap ke field image supaya FE bisa langsung pakai
+        // sebelum = products/xxx.jpg
+        // sesudah = /storage/products/xxx.jpg
         $products->transform(function ($product) {
             $product->image_url = $product->image
                 ? Storage::url($product->image)
@@ -52,7 +54,7 @@ class ProductController extends Controller
     {
         // Validasi semua input yang masuk
         $validator = Validator::make($request->all(), [
-            'category_id' => 'required|exists:categories,id',       // harus ada di tabel categories
+            'category_id' => 'required|exists:categories,id', // harus ada di tabel categories
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
