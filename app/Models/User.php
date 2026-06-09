@@ -33,14 +33,12 @@ class User extends Authenticatable implements JWTSubject
     }
 
     // wajib untuk JWT
-    #[Override]
     public function getJWTIdentifier()
     {
         return $this->getKey();
     }
 
     // wajib untuk JWT
-    #[Override]
     public function getJWTCustomClaims()
     {
         return [];
